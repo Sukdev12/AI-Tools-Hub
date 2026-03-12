@@ -6,159 +6,68 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const generateContent = (toolId: string, toolName: string, input: string): string => {
-  const templates: Record<string, (input: string) => string> = {
-    'text-summarizer': (text) => {
-      const sentences = text.split(/[.!?]+/).filter(s => s.trim());
-      const summary = sentences.slice(0, Math.max(2, Math.ceil(sentences.length * 0.3))).join('. ');
-      return `Summary:\n\n${summary}.`;
-    },
-    'blog-title-generator': (input) => {
-      const titles = [
-        `The Ultimate Guide to ${input}`,
-        `How to Master ${input} in 2024`,
-        `10 Things You Need to Know About ${input}`,
-        `${input}: A Complete Beginner's Guide`,
-        `Why ${input} Matters More Than Ever`
-      ];
-      return titles.join('\n\n');
-    },
-    'youtube-title-generator': (input) => {
-      const titles = [
-        `${input} - You Won't Believe What Happens Next!`,
-        `The TRUTH About ${input} (Revealed)`,
-        `${input} - Step by Step Tutorial`,
-        `I Tried ${input} For 30 Days - Here's What Happened`,
-        `${input} Explained in 5 Minutes`
-      ];
-      return titles.join('\n\n');
-    },
-    'viral-hook-generator': (input) => {
-      const hooks = [
-        `Stop scrolling! Here's why ${input} will change your life...`,
-        `Everyone is talking about ${input}, but they're missing THIS...`,
-        `The secret to ${input} that nobody tells you...`,
-        `I wish I knew this about ${input} sooner...`,
-        `This ${input} hack saved me hours of work!`
-      ];
-      return hooks.join('\n\n');
-    },
-    'instagram-caption-generator': (input) => {
-      return `✨ ${input} ✨\n\nExperience the magic and let your journey begin! This moment captures everything beautiful about ${input}. Swipe to see more!\n\n#${input.replace(/\s+/g, '')} #InstaDaily #Inspiration #LifeStyle #PhotoOfTheDay`;
-    },
-    'hashtag-generator': (input) => {
-      const words = input.toLowerCase().split(' ').filter(w => w);
-      const hashtags = [
-        `#${input.replace(/\s+/g, '')}`,
-        ...words.map(w => `#${w}`),
-        '#Trending',
-        '#Viral',
-        '#Daily',
-        '#Inspiration',
-        '#Love',
-        '#InstaGood',
-        '#PhotoOfTheDay',
-        '#Beautiful'
-      ];
-      return hashtags.join(' ');
-    },
-    'story-idea-generator': (input) => {
-      return `Story Idea:\n\nA young protagonist discovers a hidden world where ${input} holds the key to saving their reality. As they navigate through challenges and forge unexpected alliances, they must confront their deepest fears and unlock ancient secrets before time runs out.\n\nThemes: Adventure, Self-discovery, ${input}\nGenre: ${input} Fiction\nTarget Audience: Young Adult`;
-    },
-    'character-name-generator': (input) => {
-      const names = [
-        'Aria Moonstone',
-        'Kai Thornfield',
-        'Luna Winterbourne',
-        'Marcus Ravencroft',
-        'Seraphina Blackwood',
-        'Damon Stormrider',
-        'Elara Nightshade',
-        'Phoenix Ashborne'
-      ];
-      return `Character Names for ${input}:\n\n${names.join('\n')}`;
-    },
-    'dialogue-generator': (input) => {
-      return `"Listen," she said, leaning forward. "I know what you're thinking about ${input}, but trust me—it's not what it seems."\n\n"Then what is it?" he demanded, frustration evident in his voice.\n\n"It's complicated. ${input} has always been complicated. But if you give me a chance, I can explain everything."\n\nHe studied her face for a long moment before finally nodding. "Alright. I'm listening."`;
-    },
-    'email-writer': (input) => {
-      return `Subject: Regarding ${input}\n\nDear [Recipient],\n\nI hope this email finds you well. I am reaching out regarding ${input}.\n\nI would like to discuss this matter further at your earliest convenience. Please let me know when you would be available for a brief call or meeting.\n\nThank you for your time and consideration.\n\nBest regards,\n[Your Name]`;
-    },
-    'resume-summary-generator': (input) => {
-      return `Professional Summary:\n\nResults-driven ${input} with proven track record of delivering exceptional outcomes. Skilled in leading cross-functional teams, implementing strategic initiatives, and driving organizational growth. Strong analytical and problem-solving abilities combined with excellent communication skills. Passionate about innovation and continuous improvement.`;
-    },
-    'product-description-generator': (input) => {
-      return `Discover the Ultimate ${input}\n\nExperience premium quality and unmatched performance with our ${input}. Crafted with attention to detail and designed for modern lifestyles, this product combines functionality with style.\n\nKey Features:\n• Superior quality materials\n• Innovative design\n• Easy to use\n• Durable and long-lasting\n• Perfect for daily use\n\nTransform your experience with ${input}. Order now and enjoy the difference!`;
-    },
-    'ad-copy-generator': (input) => {
-      return `🚀 Introducing ${input} - Your Life, Upgraded!\n\nTired of settling for less? ${input} is here to revolutionize the way you live, work, and play.\n\n✓ Premium Quality\n✓ Unbeatable Value\n✓ Instant Results\n\n🎯 Limited Time Offer: Get 20% OFF!\n\nDon't miss out - Join thousands of satisfied customers today!\n\n👉 Click here to claim your discount now!`;
-    },
-    'tweet-generator': (input) => {
-      const tweets = [
-        `Just discovered ${input} and it's a game-changer! 🚀 #Innovation`,
-        `Hot take: ${input} is the future. Here's why 👇`,
-        `${input} hits different when you really understand it 💯`,
-        `The ${input} community is amazing! So grateful to be part of this journey ✨`,
-        `Can we talk about how underrated ${input} is? Thread 🧵`
-      ];
-      return tweets.join('\n\n');
-    },
-    'linkedin-post-generator': (input) => {
-      return `I'm excited to share my thoughts on ${input}.\n\nOver the past few months, I've had the opportunity to dive deep into this area, and here are my key takeaways:\n\n1️⃣ ${input} is transforming how we approach modern challenges\n2️⃣ The potential for innovation is unprecedented\n3️⃣ Success requires both strategy and execution\n\nWhat's your experience with ${input}? I'd love to hear your perspective in the comments.\n\n#ProfessionalDevelopment #Innovation #Leadership`;
-    },
-    'startup-idea-generator': (input) => {
-      return `Startup Idea: ${input} Solutions\n\nProblem: Current solutions in the ${input} space are outdated, expensive, or difficult to use.\n\nSolution: A modern, AI-powered platform that simplifies ${input} for businesses and individuals. Subscription-based model with freemium tier.\n\nTarget Market: Small to medium businesses, freelancers, and professionals\n\nRevenue Model: SaaS subscription ($29-$99/month)\n\nUnique Value Proposition: Combine cutting-edge technology with intuitive design to make ${input} accessible to everyone.`;
-    },
-    'domain-name-generator': (input) => {
-      const base = input.toLowerCase().replace(/\s+/g, '');
-      const domains = [
-        `${base}.com`,
-        `${base}hq.com`,
-        `get${base}.com`,
-        `${base}pro.com`,
-        `${base}hub.com`,
-        `try${base}.com`,
-        `${base}app.com`,
-        `my${base}.com`
-      ];
-      return `Available Domain Names:\n\n${domains.join('\n')}`;
-    },
-    'keyword-generator': (input) => {
-      const keywords = [
-        input,
-        `${input} guide`,
-        `best ${input}`,
-        `${input} tips`,
-        `how to ${input}`,
-        `${input} tutorial`,
-        `${input} for beginners`,
-        `${input} examples`,
-        `learn ${input}`,
-        `${input} strategies`
-      ];
-      return `SEO Keywords:\n\n${keywords.join('\n')}`;
-    },
-    'ai-prompt-generator': (input) => {
-      return `AI Prompt:\n\n"Create a detailed and comprehensive explanation of ${input}. Include key concepts, practical examples, and step-by-step guidance. Make it accessible for beginners while providing valuable insights for advanced users. Focus on real-world applications and actionable advice."\n\nAlternative Prompt:\n\n"Act as an expert in ${input}. Provide a deep analysis covering the fundamentals, advanced techniques, and future trends. Include specific examples and case studies to illustrate your points."`;
-    },
-    'motivation-quote-generator': (input) => {
-      const quotes = [
-        `"The journey of ${input} begins with a single step. Take it today."`,
-        `"Success in ${input} isn't about being perfect—it's about being persistent."`,
-        `"Every expert in ${input} was once a beginner who refused to give up."`,
-        `"Your potential in ${input} is limitless. Believe in yourself."`,
-        `"The best time to start with ${input} was yesterday. The second best time is now."`
-      ];
-      return quotes.join('\n\n');
-    }
+const getSystemPrompt = (toolName: string): string => {
+  const prompts: Record<string, string> = {
+    'Text Summarizer': 'You are an expert content summarizer. Create a concise, well-structured summary that captures the key points and main ideas.',
+    'Blog Title Generator': 'You are a creative copywriter specializing in blog titles. Generate 5 unique, engaging, and SEO-friendly blog post titles.',
+    'YouTube Title Generator': 'You are a YouTube video title expert. Generate 5 compelling, click-worthy YouTube video titles with strong engagement potential.',
+    'Viral Hook Generator': 'You are a viral marketing specialist. Generate 5 attention-grabbing opening hooks designed to stop scrollers and capture attention.',
+    'Instagram Caption Generator': 'You are an Instagram content expert. Generate an engaging Instagram caption with appropriate emojis, hashtags, and call-to-action.',
+    'Hashtag Generator': 'You are a social media strategy expert. Generate 10-15 relevant, trending hashtags that will increase discoverability.',
+    'Story Idea Generator': 'You are a creative storyteller. Generate an original and compelling story idea with plot, characters, and themes.',
+    'Character Name Generator': 'You are a character naming specialist. Generate 8 unique, memorable character names appropriate for the given description.',
+    'Dialogue Generator': 'You are a screenwriter and dialogue expert. Create realistic, engaging dialogue between characters that sounds natural.',
+    'Email Writer': 'You are a professional email writing expert. Generate a clear, concise, and persuasive email.',
+    'Resume Summary Generator': 'You are a career coach and resume expert. Write a compelling professional summary that highlights key strengths.',
+    'Product Description Generator': 'You are a marketing copywriter. Write a persuasive and engaging product description that highlights benefits.',
+    'Ad Copy Generator': 'You are an advertising expert. Generate compelling ad copy designed to convert and drive sales.',
+    'Tweet Generator': 'You are a Twitter expert. Generate engaging, concise tweets with strong engagement potential.',
+    'LinkedIn Post Generator': 'You are a LinkedIn content specialist. Write a professional, thought-provoking LinkedIn post.',
+    'Startup Idea Generator': 'You are an entrepreneur and business strategist. Generate an innovative startup idea with problem, solution, and market potential.',
+    'Domain Name Generator': 'You are a domain naming expert. Suggest 8 creative, brandable domain names.',
+    'Keyword Generator': 'You are an SEO expert. Generate 10 relevant keywords optimized for search engines.',
+    'AI Prompt Generator': 'You are an AI prompt engineering expert. Generate well-structured, detailed prompts for AI systems.',
+    'Motivation Quote Generator': 'You are an inspirational writer. Generate 5 unique, motivational quotes.'
   };
+  return prompts[toolName] || 'You are a helpful AI assistant.';
+};
 
-  const generator = templates[toolId];
-  if (!generator) {
-    return `Generated content for ${toolName}:\n\n${input}\n\nThis is a demo output. The AI generation would provide more sophisticated results with a proper AI API integration.`;
+const callOpenRouter = async (toolName: string, input: string, apiKey: string): Promise<string> => {
+  const systemPrompt = getSystemPrompt(toolName);
+  const userMessage = `${toolName}:\n\n${input}`;
+
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://ai-tools-hub.com",
+      "X-Title": "AI Tools Hub",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "mistralai/mistral-7b-instruct",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user",
+          content: userMessage
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
   }
 
-  return generator(input);
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || "Error generating content";
 };
 
 Deno.serve(async (req: Request) => {
@@ -172,7 +81,7 @@ Deno.serve(async (req: Request) => {
   try {
     const { toolId, toolName, input } = await req.json();
 
-    if (!input || !toolId) {
+    if (!input || !toolId || !toolName) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         {
@@ -182,7 +91,12 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const output = generateContent(toolId, toolName, input);
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    if (!apiKey) {
+      throw new Error("OpenRouter API key not configured");
+    }
+
+    const output = await callOpenRouter(toolName, input, apiKey);
 
     return new Response(
       JSON.stringify({ output, success: true }),
@@ -192,8 +106,9 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
+    console.error("Error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || "Failed to generate content" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
